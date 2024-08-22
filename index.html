@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Table Normalizer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            width: 100%;
+            background-color: #007BFF;
+            padding: 20px;
+            text-align: center;
+            color: #fff;
+            position: relative;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 2em;
+        }
+
+        #languageToggle {
+			position: absolute;
+			top: 20px;
+			right: 30px;
+			background-color: #fff; /* White background for the button */
+			color: #007BFF; /* Blue text color for contrast */
+			border: 1px solid #007BFF; /* Blue border to match the text */
+			padding: 10px;
+			border-radius: 5px;
+			cursor: pointer;
+		}
+
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin-top: 20px;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        .instructions {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .instructions p {
+            margin: 0;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-bottom: 20px;
+            font-size: 1em;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            resize: vertical;
+        }
+
+        .button-container {
+            text-align: right;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #007BFF;
+            color: #fff;
+        }
+
+        .error-message {
+            color: red;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .step-two {
+            display: none;
+        }
+
+        .checkbox-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .checkbox-list label {
+            display: block;
+        }
+
+        .step-one {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1 id="pageTitle">Table Normalizer</h1>
+        <button id="languageToggle" onclick="toggleLanguage()">Español</button>
+    </header>
+
+    <div class="container">
+        <!-- Paso 1: Instrucciones e ingreso de datos -->
+        <div class="step-one">
+            <div class="instructions">
+                <p id="stepOneInstructions"><strong>Step 1:</strong> Copy and paste your Excel table data into the text area below. The first row should contain the headers.</p>
+            </div>
+            <textarea id="tableInput" placeholder="Paste your table data here..."></textarea>
+            <div class="button-container">
+                <button id="selectColumnsButton" onclick="selectColumns()">Select Columns</button>
+            </div>
+            <div id="error" class="error-message">Please enter valid data.</div>
+        </div>
+
+        <!-- Paso 2: Selección de columnas para convertir en filas -->
+        <div class="step-two">
+            <div class="instructions">
+                <p id="stepTwoInstructions"><strong>Step 2:</strong> Select the columns you want to convert into rows.</p>
+            </div>
+            <div id="columnSelection" class="checkbox-list"></div>
+            <div class="button-container">
+                <button id="normalizeButton" onclick="normalizeTable()">Normalize Table</button>
+            </div>
+        </div>
+
+        <!-- Resultado de la normalización -->
+        <table id="outputTable"></table>
+    </div>
+
+    <script>
+        let headers = [];
+        let selectedColumns = [];
+        let language = 'en';
+
+        function toggleLanguage() {
+            const pageTitle = document.getElementById('pageTitle');
+            const languageToggle = document.getElementById('languageToggle');
+            const stepOneInstructions = document.getElementById('stepOneInstructions');
+            const stepTwoInstructions = document.getElementById('stepTwoInstructions');
+            const selectColumnsButton = document.getElementById('selectColumnsButton');
+            const normalizeButton = document.getElementById('normalizeButton');
+            const error = document.getElementById('error');
+
+            if (language === 'en') {
+                language = 'es';
+                pageTitle.textContent = 'Normalizador de Tablas';
+                languageToggle.textContent = 'English';
+                stepOneInstructions.innerHTML = '<strong>Paso 1:</strong> Copia y pega los datos de tu tabla de Excel en el área de texto a continuación. El primer renglón debe contener los encabezados.';
+                stepTwoInstructions.innerHTML = '<strong>Paso 2:</strong> Selecciona las columnas que quieres convertir en renglones.';
+                selectColumnsButton.textContent = 'Seleccionar Columnas';
+                normalizeButton.textContent = 'Normalizar Tabla';
+                error.textContent = 'Por favor, ingresa datos válidos.';
+            } else {
+                language = 'en';
+                pageTitle.textContent = 'Table Normalizer';
+                languageToggle.textContent = 'Español';
+                stepOneInstructions.innerHTML = '<strong>Step 1:</strong> Copy and paste your Excel table data into the text area below. The first row should contain the headers.';
+                stepTwoInstructions.innerHTML = '<strong>Step 2:</strong> Select the columns you want to convert into rows.';
+                selectColumnsButton.textContent = 'Select Columns';
+                normalizeButton.textContent = 'Normalize Table';
+                error.textContent = 'Please enter valid data.';
+            }
+        }
+
+        function selectColumns() {
+            const input = document.getElementById('tableInput').value.trim();
+            const error = document.getElementById('error');
+            const columnSelection = document.getElementById('columnSelection');
+            const stepTwo = document.querySelector('.step-two');
+            error.style.display = 'none';
+            columnSelection.innerHTML = '';
+            stepTwo.style.display = 'none';
+
+            if (!input) {
+                error.style.display = 'block';
+                return;
+            }
+
+            const rows = input.split('\n').map(row => row.split('\t'));
+            if (rows.length < 2) {
+                error.style.display = 'block';
+                return;
+            }
+
+            headers = rows[0];
+            const checkboxes = headers.map((header, index) => {
+                return `<label><input type="checkbox" value="${index}"> ${header}</label>`;
+            }).join('');
+            columnSelection.innerHTML = checkboxes;
+            stepTwo.style.display = 'block';
+        }
+
+        function normalizeTable() {
+            const selectedCheckboxes = document.querySelectorAll('#columnSelection input:checked');
+            selectedColumns = Array.from(selectedCheckboxes).map(checkbox => parseInt(checkbox.value));
+
+
+            const input = document.getElementById('tableInput').value.trim();
+            const rows = input.split('\n').map(row => row.split('\t'));
+            const data = rows.slice(1);
+            const outputTable = document.getElementById('outputTable');
+            outputTable.innerHTML = '';
+
+            // Crear encabezado de la nueva tabla
+            const tableHeader = document.createElement('tr');
+            headers.forEach((header, index) => {
+                if (!selectedColumns.includes(index)) {
+                    const th = document.createElement('th');
+                    th.textContent = header.trim();
+                    tableHeader.appendChild(th);
+                }
+            });
+            tableHeader.appendChild(document.createElement('th')).textContent = language === 'en' ? "Category" : "Categoría";
+            tableHeader.appendChild(document.createElement('th')).textContent = language === 'en' ? "Value" : "Valor";
+            outputTable.appendChild(tableHeader);
+
+            // Crear filas normalizadas
+            data.forEach(row => {
+                selectedColumns.forEach(colIndex => {
+                    const newRow = document.createElement('tr');
+                    row.forEach((cell, index) => {
+                        if (!selectedColumns.includes(index)) {
+                            const td = document.createElement('td');
+                            td.textContent = cell.trim();
+                            newRow.appendChild(td);
+                        }
+                    });
+                    const categoryCell = document.createElement('td');
+                    categoryCell.textContent = headers[colIndex];
+                    newRow.appendChild(categoryCell);
+
+                    const valueCell = document.createElement('td');
+                    valueCell.textContent = row[colIndex];
+                    newRow.appendChild(valueCell);
+
+                    outputTable.appendChild(newRow);
+                });
+            });
+        }
+    </script>
+
+</body>
+</html>
